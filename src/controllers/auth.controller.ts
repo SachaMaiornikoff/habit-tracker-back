@@ -3,7 +3,11 @@ import { Request, Response } from 'express';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '../generated/prisma/client';
 import { registerSchema, loginSchema } from '../validators/auth.validator';
-import { hashPassword, comparePassword, generateToken } from '../services/auth.service';
+import {
+  hashPassword,
+  comparePassword,
+  generateToken,
+} from '../services/auth.service';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
 const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
@@ -66,16 +70,15 @@ export async function register(req: Request, res: Response): Promise<void> {
   }
 }
 
-
 export async function getAuthenticatedUser(
   req: Request,
   res: Response
 ): Promise<void> {
   try {
-    const { userId } = req as AuthenticatedRequest;
+    const { user: authUser } = req as AuthenticatedRequest;
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: authUser.userId },
       select: {
         id: true,
         email: true,
@@ -92,6 +95,8 @@ export async function getAuthenticatedUser(
   } catch (error) {
     console.error('Get authenticated user error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
 export async function login(req: Request, res: Response): Promise<void> {
   try {
