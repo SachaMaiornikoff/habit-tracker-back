@@ -1,0 +1,21 @@
+# Règles pour Claude - Habit Tracker Backend
+
+Ce fichier contient les règles que Claude doit suivre lors du développement sur ce projet.
+
+---
+
+# Tests obligatoires
+
+- Générer des tests unitaires pour chaque nouvelle fonctionnalité
+- Viser une couverture minimale de 80%
+
+# Documentation
+
+- Documenter toutes les décisions architecturales importantes dans /docs/decisions/
+- Ajouter des commentaires pour la logique complexe ou non-évidente
+- Mettre à jour le README.md quand tu ajoutes des features majeures
+
+# Style de code
+
+- Nommer les fonctions de manière explicite
+- Ne jamais désactiver eslint sans me demander explicitement si tu peux le faire
