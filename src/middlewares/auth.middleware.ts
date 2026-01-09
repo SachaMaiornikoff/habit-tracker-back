@@ -7,7 +7,7 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export function authenticateToken(
+export function authMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
@@ -21,7 +21,9 @@ export function authenticateToken(
 
   const parts = authHeader.split(' ');
   if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    res.status(401).json({ error: 'Invalid authorization format. Use: Bearer <token>' });
+    res
+      .status(401)
+      .json({ error: 'Invalid authorization format. Use: Bearer <token>' });
     return;
   }
 
