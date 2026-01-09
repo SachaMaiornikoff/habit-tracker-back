@@ -4,6 +4,7 @@ import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '../generated/prisma/client';
 import { registerSchema, loginSchema } from '../validators/auth.validator';
 import { hashPassword, comparePassword, generateToken } from '../services/auth.service';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
 const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,6 +65,33 @@ export async function register(req: Request, res: Response): Promise<void> {
     });
   }
 }
+
+
+export async function getAuthenticatedUser(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Get authenticated user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
 
 export async function login(req: Request, res: Response): Promise<void> {
   try {
