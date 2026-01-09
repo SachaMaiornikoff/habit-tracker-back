@@ -1,10 +1,13 @@
+import 'dotenv/config';
 import { Request, Response } from 'express';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '../generated/prisma/client';
 import { registerSchema } from '../validators/auth.validator';
 import { hashPassword, generateToken } from '../services/auth.service';
 
+const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = new (PrismaClient as any)();
+const prisma = new (PrismaClient as any)({ adapter });
 
 export async function register(req: Request, res: Response): Promise<void> {
   try {
