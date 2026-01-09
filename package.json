@@ -1,0 +1,16 @@
+{
+  "name": "habit-tracker-back",
+  "version": "1.0.0",
+  "description": "Backend for habit tracker application",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
