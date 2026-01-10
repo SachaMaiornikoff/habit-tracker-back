@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '../generated/prisma/client';
 import { registerSchema, loginSchema } from '../validators/auth.validator';
@@ -9,20 +9,29 @@ import {
   generateToken,
 } from '../services/auth.service';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import {
+  ValidationError,
+  UnauthorizedError,
+  NotFoundError,
+  ConflictError,
+} from '../errors/AppError';
 
 const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
-export async function register(req: Request, res: Response): Promise<void> {
+export async function register(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const validation = registerSchema.safeParse(req.body);
 
     if (!validation.success) {
-      res.status(400).json({
-        error: 'Validation failed',
-        details: validation.error.issues,
-      });
-      return;
+      throw new ValidationError(
+        'Echec de la validation',
+        validation.error.issues
+      );
     }
 
     const { email, password, firstName, lastName } = validation.data;
@@ -32,10 +41,7 @@ export async function register(req: Request, res: Response): Promise<void> {
     });
 
     if (existingUser) {
-      res.status(409).json({
-        error: 'Email already registered',
-      });
-      return;
+      throw new ConflictError('Email deja enregistre');
     }
 
     const passwordHash = await hashPassword(password);
@@ -52,26 +58,27 @@ export async function register(req: Request, res: Response): Promise<void> {
     const token = generateToken(user.id);
 
     res.status(201).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        createdAt: user.createdAt,
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          createdAt: user.createdAt,
+        },
+        token,
       },
-      token,
     });
   } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-    });
+    next(error);
   }
 }
 
 export async function getAuthenticatedUser(
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> {
   try {
     const { user: authUser } = req as AuthenticatedRequest;
@@ -86,27 +93,31 @@ export async function getAuthenticatedUser(
     });
 
     if (!user) {
-      res.status(404).json({ error: 'User not found' });
-      return;
+      throw new NotFoundError('Utilisateur non trouve');
     }
 
-    res.json(user);
+    res.json({
+      success: true,
+      data: user,
+    });
   } catch (error) {
-    console.error('Get authenticated user error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 }
 
-export async function login(req: Request, res: Response): Promise<void> {
+export async function login(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const validation = loginSchema.safeParse(req.body);
 
     if (!validation.success) {
-      res.status(400).json({
-        error: 'Validation failed',
-        details: validation.error.issues,
-      });
-      return;
+      throw new ValidationError(
+        'Echec de la validation',
+        validation.error.issues
+      );
     }
 
     const { email, password } = validation.data;
@@ -116,37 +127,31 @@ export async function login(req: Request, res: Response): Promise<void> {
     });
 
     if (!user) {
-      res.status(401).json({
-        error: 'Invalid credentials',
-      });
-      return;
+      throw new UnauthorizedError('Identifiants invalides');
     }
 
     const isPasswordValid = await comparePassword(password, user.passwordHash);
 
     if (!isPasswordValid) {
-      res.status(401).json({
-        error: 'Invalid credentials',
-      });
-      return;
+      throw new UnauthorizedError('Identifiants invalides');
     }
 
     const token = generateToken(user.id);
 
     res.status(200).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        createdAt: user.createdAt,
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          createdAt: user.createdAt,
+        },
+        token,
       },
-      token,
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-    });
+    next(error);
   }
 }
