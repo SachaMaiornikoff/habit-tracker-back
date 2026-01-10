@@ -11,8 +11,7 @@ import {
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
 const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = new (PrismaClient as any)({ adapter });
+const prisma = new PrismaClient({ adapter });
 
 export async function register(req: Request, res: Response): Promise<void> {
   try {
