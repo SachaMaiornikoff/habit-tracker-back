@@ -188,3 +188,93 @@ export async function deleteHabit(
     next(error);
   }
 }
+
+function getStartOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Lundi = début de semaine
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+export async function getHabitStreak(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { user: authUser } = req as AuthenticatedRequest;
+    const { id } = req.params;
+
+    const habit = await prisma.habit.findFirst({
+      where: {
+        id,
+        userId: authUser.userId,
+      },
+    });
+
+    if (!habit) {
+      throw new NotFoundError('Habitude non trouvée');
+    }
+
+    const { weeklyTarget } = habit;
+
+    // Obtenir le début de la semaine précédente
+    const now = new Date();
+    const startOfCurrentWeek = getStartOfWeek(now);
+    const startOfPreviousWeek = new Date(startOfCurrentWeek);
+    startOfPreviousWeek.setDate(startOfPreviousWeek.getDate() - 7);
+
+    // Récupérer toutes les entrées de cette habitude
+    const entries = await prisma.habitEntry.findMany({
+      where: {
+        habitId: id,
+      },
+      orderBy: {
+        date: 'desc',
+      },
+    });
+
+    // Convertir les entrées en un Set de dates pour recherche rapide
+    const entryDates = new Set(entries.map((e: { date: string }) => e.date));
+
+    let streak = 0;
+    let weekStart = new Date(startOfPreviousWeek);
+
+    // Parcourir les semaines vers le passé
+    while (true) {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      // Compter les entrées dans cette semaine
+      let countInWeek = 0;
+      for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate() + 1)) {
+        if (entryDates.has(formatDate(d))) {
+          countInWeek++;
+        }
+      }
+
+      // Si on n'atteint pas le target, la streak s'arrête
+      if (countInWeek < weeklyTarget) {
+        break;
+      }
+
+      streak++;
+
+      // Passer à la semaine précédente
+      weekStart.setDate(weekStart.getDate() - 7);
+    }
+
+    res.json({
+      success: true,
+      data: { streak },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
