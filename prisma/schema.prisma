@@ -17,4 +17,29 @@ model User {
   firstName    String
   lastName     String
   createdAt    DateTime @default(now())
+  habits       Habit[]
+}
+
+model Habit {
+  id         String       @id @default(uuid())
+  userId     String
+  title      String
+  color      String
+  createdAt  DateTime     @default(now())
+  archivedAt DateTime?
+  user       User         @relation(fields: [userId], references: [id])
+  entries    HabitEntry[]
+
+  @@index([userId])
+}
+
+model HabitEntry {
+  id          String   @id @default(uuid())
+  habitId     String
+  date        String
+  completedAt DateTime @default(now())
+  habit       Habit    @relation(fields: [habitId], references: [id])
+
+  @@unique([habitId, date])
+  @@index([habitId])
 }
