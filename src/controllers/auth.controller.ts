@@ -89,6 +89,8 @@ export async function getAuthenticatedUser(
         id: true,
         email: true,
         firstName: true,
+        lastName: true,
+        createdAt: true,
       },
     });
 
@@ -98,7 +100,7 @@ export async function getAuthenticatedUser(
 
     res.json({
       success: true,
-      data: user,
+      data: { user },
     });
   } catch (error) {
     next(error);
