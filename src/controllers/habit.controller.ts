@@ -174,6 +174,11 @@ export async function deleteHabit(
       throw new NotFoundError('Habitude non trouvée');
     }
 
+    // Supprimer d'abord les HabitEntry associées pour éviter les reliquats
+    await prisma.habitEntry.deleteMany({
+      where: { habitId: id },
+    });
+
     await prisma.habit.delete({
       where: { id },
     });
