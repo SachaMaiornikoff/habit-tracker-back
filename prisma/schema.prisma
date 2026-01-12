@@ -21,14 +21,15 @@ model User {
 }
 
 model Habit {
-  id         String       @id @default(uuid())
-  userId     String
-  title      String
-  color      String
-  createdAt  DateTime     @default(now())
-  archivedAt DateTime?
-  user       User         @relation(fields: [userId], references: [id])
-  entries    HabitEntry[]
+  id           String       @id @default(uuid())
+  userId       String
+  title        String
+  color        String
+  weeklyTarget Int          @default(1)
+  createdAt    DateTime     @default(now())
+  archivedAt   DateTime?
+  user         User         @relation(fields: [userId], references: [id])
+  entries      HabitEntry[]
 
   @@index([userId])
 }
