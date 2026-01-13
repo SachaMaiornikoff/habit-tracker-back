@@ -201,16 +201,19 @@ export async function updateUser(
       }
     }
 
-    const newPasswordHash = await hashPassword(password);
+    const updateData: { email: string; firstName: string; lastName: string; passwordHash?: string } = {
+      email,
+      firstName,
+      lastName,
+    };
+
+    if (password) {
+      updateData.passwordHash = await hashPassword(password);
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: authUser.userId },
-      data: {
-        email,
-        passwordHash: newPasswordHash,
-        firstName,
-        lastName,
-      },
+      data: updateData,
     });
 
     res.json({
