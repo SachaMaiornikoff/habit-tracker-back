@@ -17,6 +17,3 @@ export const upsertHabitEntrySchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'date doit être au format YYYY-MM-DD'),
   completed: z.boolean(),
 });
-
-export type GetHabitEntriesInput = z.infer<typeof getHabitEntriesSchema>;
-export type UpsertHabitEntryInput = z.infer<typeof upsertHabitEntrySchema>;

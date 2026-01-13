@@ -1,16 +1,11 @@
-import 'dotenv/config';
 import { Request, Response, NextFunction } from 'express';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
-import { PrismaClient } from '../generated/prisma/client';
-import { createHabitSchema, updateHabitSchema } from '../validators/habit.validator';
-import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { prisma } from '../lib/prisma';
 import {
-  ValidationError,
-  NotFoundError,
-} from '../errors/AppError';
-
-const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
+  createHabitSchema,
+  updateHabitSchema,
+} from '../validators/habit.validator';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { ValidationError, NotFoundError } from '../errors/AppError';
 
 export async function createHabit(
   req: Request,
@@ -141,7 +136,9 @@ export async function updateHabit(
         ...(title !== undefined && { title }),
         ...(color !== undefined && { color }),
         ...(weeklyTarget !== undefined && { weeklyTarget }),
-        ...(archivedAt !== undefined && { archivedAt: archivedAt ? new Date(archivedAt) : null }),
+        ...(archivedAt !== undefined && {
+          archivedAt: archivedAt ? new Date(archivedAt) : null,
+        }),
       },
     });
 
@@ -244,7 +241,7 @@ export async function getHabitStreak(
     const entryDates = new Set(entries.map((e: { date: string }) => e.date));
 
     let streak = 0;
-    let weekStart = new Date(startOfPreviousWeek);
+    const weekStart = new Date(startOfPreviousWeek);
 
     // Parcourir les semaines vers le passé
     while (true) {
@@ -253,7 +250,11 @@ export async function getHabitStreak(
 
       // Compter les entrées dans cette semaine
       let countInWeek = 0;
-      for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate() + 1)) {
+      for (
+        let d = new Date(weekStart);
+        d <= weekEnd;
+        d.setDate(d.getDate() + 1)
+      ) {
         if (entryDates.has(formatDate(d))) {
           countInWeek++;
         }

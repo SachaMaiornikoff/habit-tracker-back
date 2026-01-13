@@ -1,16 +1,11 @@
-import 'dotenv/config';
 import { Request, Response, NextFunction } from 'express';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
-import { PrismaClient } from '../generated/prisma/client';
+import { prisma } from '../lib/prisma';
 import {
   getHabitEntriesSchema,
   upsertHabitEntrySchema,
 } from '../validators/habitEntry.validator';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import { ValidationError, NotFoundError } from '../errors/AppError';
-
-const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
 
 export async function getHabitEntries(
   req: Request,

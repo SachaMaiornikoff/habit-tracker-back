@@ -1,8 +1,10 @@
-import 'dotenv/config';
 import { Request, Response, NextFunction } from 'express';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
-import { PrismaClient } from '../generated/prisma/client';
-import { registerSchema, loginSchema, updateUserSchema } from '../validators/auth.validator';
+import { prisma } from '../lib/prisma';
+import {
+  registerSchema,
+  loginSchema,
+  updateUserSchema,
+} from '../validators/auth.validator';
 import {
   hashPassword,
   comparePassword,
@@ -15,9 +17,6 @@ import {
   NotFoundError,
   ConflictError,
 } from '../errors/AppError';
-
-const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
 
 export async function register(
   req: Request,
@@ -175,7 +174,8 @@ export async function updateUser(
       );
     }
 
-    const { currentPassword, email, password, firstName, lastName } = validation.data;
+    const { currentPassword, email, password, firstName, lastName } =
+      validation.data;
 
     const user = await prisma.user.findUnique({
       where: { id: authUser.userId },
@@ -185,7 +185,10 @@ export async function updateUser(
       throw new NotFoundError('Utilisateur non trouve');
     }
 
-    const isPasswordValid = await comparePassword(currentPassword, user.passwordHash);
+    const isPasswordValid = await comparePassword(
+      currentPassword,
+      user.passwordHash
+    );
 
     if (!isPasswordValid) {
       throw new UnauthorizedError('Mot de passe actuel incorrect');
@@ -201,7 +204,12 @@ export async function updateUser(
       }
     }
 
-    const updateData: { email: string; firstName: string; lastName: string; passwordHash?: string } = {
+    const updateData: {
+      email: string;
+      firstName: string;
+      lastName: string;
+      passwordHash?: string;
+    } = {
       email,
       firstName,
       lastName,

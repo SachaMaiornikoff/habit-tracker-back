@@ -40,9 +40,3 @@ export class ConflictError extends AppError {
     super(message, 409, 'CONFLICT');
   }
 }
-
-export class InternalError extends AppError {
-  constructor(message: string = 'Erreur interne du serveur') {
-    super(message, 500, 'INTERNAL_ERROR');
-  }
-}

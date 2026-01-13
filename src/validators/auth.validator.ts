@@ -7,7 +7,7 @@ const sha256HashSchema = z
   .regex(/^[a-f0-9]+$/, 'Format de hash invalide');
 
 export const registerSchema = z.object({
-  email: z.string().email('Format d\'email invalide'),
+  email: z.string().email("Format d'email invalide"),
   password: sha256HashSchema,
   firstName: z
     .string()
@@ -19,18 +19,14 @@ export const registerSchema = z.object({
     .max(50, 'Le nom est trop long'),
 });
 
-export type RegisterInput = z.infer<typeof registerSchema>;
-
 export const loginSchema = z.object({
-  email: z.string().email('Format d\'email invalide'),
+  email: z.string().email("Format d'email invalide"),
   password: sha256HashSchema,
 });
 
-export type LoginInput = z.infer<typeof loginSchema>;
-
 export const updateUserSchema = z.object({
   currentPassword: sha256HashSchema,
-  email: z.string().email('Format d\'email invalide'),
+  email: z.string().email("Format d'email invalide"),
   password: sha256HashSchema.optional(),
   firstName: z
     .string()
@@ -41,5 +37,3 @@ export const updateUserSchema = z.object({
     .min(1, 'Le nom est requis')
     .max(50, 'Le nom est trop long'),
 });
-
-export type UpdateUserInput = z.infer<typeof updateUserSchema>;

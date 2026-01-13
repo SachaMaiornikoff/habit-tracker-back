@@ -8,7 +8,10 @@ export const createHabitSchema = z.object({
   color: z
     .string()
     .min(1, 'La couleur est requise')
-    .regex(/^#[0-9A-Fa-f]{6}$/, 'La couleur doit être au format hexadécimal (#RRGGBB)'),
+    .regex(
+      /^#[0-9A-Fa-f]{6}$/,
+      'La couleur doit être au format hexadécimal (#RRGGBB)'
+    ),
   weeklyTarget: z
     .number()
     .int('La cible hebdomadaire doit être un entier')
@@ -27,7 +30,10 @@ export const updateHabitSchema = z.object({
   color: z
     .string()
     .min(1, 'La couleur est requise')
-    .regex(/^#[0-9A-Fa-f]{6}$/, 'La couleur doit être au format hexadécimal (#RRGGBB)')
+    .regex(
+      /^#[0-9A-Fa-f]{6}$/,
+      'La couleur doit être au format hexadécimal (#RRGGBB)'
+    )
     .optional(),
   weeklyTarget: z
     .number()
@@ -37,10 +43,7 @@ export const updateHabitSchema = z.object({
     .optional(),
   archivedAt: z
     .string()
-    .datetime('La date d\'archivage doit être au format ISO 8601')
+    .datetime("La date d'archivage doit être au format ISO 8601")
     .nullable()
     .optional(),
 });
-
-export type CreateHabitInput = z.infer<typeof createHabitSchema>;
-export type UpdateHabitInput = z.infer<typeof updateHabitSchema>;

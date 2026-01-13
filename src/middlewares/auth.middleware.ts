@@ -23,7 +23,7 @@ export function authMiddleware(
     const parts = authHeader.split(' ');
     if (parts.length !== 2 || parts[0] !== 'Bearer') {
       throw new UnauthorizedError(
-        'Format d\'autorisation invalide. Utilisez: Bearer <token>'
+        "Format d'autorisation invalide. Utilisez: Bearer <token>"
       );
     }
 
