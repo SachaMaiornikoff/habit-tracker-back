@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Request, Response, NextFunction } from 'express';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '../generated/prisma/client';
-import { registerSchema, loginSchema } from '../validators/auth.validator';
+import { registerSchema, loginSchema, updateUserSchema } from '../validators/auth.validator';
 import {
   hashPassword,
   comparePassword,
@@ -151,6 +151,78 @@ export async function login(
           createdAt: user.createdAt,
         },
         token,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateUser(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { user: authUser } = req as AuthenticatedRequest;
+
+    const validation = updateUserSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      throw new ValidationError(
+        'Echec de la validation',
+        validation.error.issues
+      );
+    }
+
+    const { currentPassword, email, password, firstName, lastName } = validation.data;
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.userId },
+    });
+
+    if (!user) {
+      throw new NotFoundError('Utilisateur non trouve');
+    }
+
+    const isPasswordValid = await comparePassword(currentPassword, user.passwordHash);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedError('Mot de passe actuel incorrect');
+    }
+
+    if (email !== user.email) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        throw new ConflictError('Cet email est deja utilise');
+      }
+    }
+
+    const newPasswordHash = await hashPassword(password);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: authUser.userId },
+      data: {
+        email,
+        passwordHash: newPasswordHash,
+        firstName,
+        lastName,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          createdAt: updatedUser.createdAt,
+        },
       },
     });
   } catch (error) {

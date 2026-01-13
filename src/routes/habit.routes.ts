@@ -6,6 +6,7 @@ import {
   getHabit,
   updateHabit,
   deleteHabit,
+  getHabitStreak,
 } from '../controllers/habit.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
 
@@ -16,6 +17,7 @@ router.use(authMiddleware);
 router.post('/', createHabit);
 router.get('/', getHabits);
 router.get('/:id', getHabit);
+router.get('/:id/streak', getHabitStreak);
 router.patch('/:id', updateHabit);
 router.delete('/:id', deleteHabit);
 
